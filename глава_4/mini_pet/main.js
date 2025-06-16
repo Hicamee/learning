@@ -10,90 +10,81 @@
 // Формат item - объект с:
 // Названием итема;
 // Ценой за штуку. Два итема с одинаковым именем считаем одной позицией в чеке.
-// Использовать отладку (debugger) при решении в хроме. Если получится без отладки - самому допустить ошибку и найти ее при отладке через интерфейс девтулзов
 
-
-// создаю функцию-конструктор Elements
 function Elements() {
-    this.items = {} // создаю пустой объект, куда буду добавлять товары
-    this.isLocked = false // создаю флаг блокировки, изначально false (разблокировано)
+    this.items = {};
+    this.isLocked = false;
 
-    // создаю метод addItem, который добавляет товар
-    this.addItem = function (item, count, number) {
-
-        if (this.isLocked === false) { // если заказ не заблокирован
-
-            if (!this.items[item]) { // если товара ещё нет в списке
-                this.items[item] = { // создаю объект товара
-                    price: count, // сохраняю цену за 1 товар
-                    amount: number || 1, // количество товара, по умолчанию 1
-                    total: count * (number || 1) // общая сумма за товар
-                }
-
-            } else { // если товар уже есть
-                this.items[item].amount += number || 1 // увеличиваю количество
-                this.items[item].total = this.items[item].amount * this.items[item].price // пересчитываю сумму
-            }
-
-        } else {
-            alert('Изменения заблокированы!') // если заказ заблокирован — показываю сообщение
+    this.addItem = function (name, price, count = 1) {
+        if (this.isLocked) {
+            alert('Изменения заблокированы!');
+            return;
         }
-    }
 
-    // создаю метод removeItem, который удаляет товар
-    this.removeItem = function (item, number) {
-        if (this.isLocked === false) { // если заказ не заблокирован
-            if (!this.items[item]) return // если товара нет — ничего не делаю
-            if ((number || 1) > this.items[item].amount) return // если пытаюсь удалить больше, чем есть — ничего не делаю
-
-            this.items[item].amount -= number || 1 // уменьшаю количество товара
-            this.items[item].total = this.items[item].amount * this.items[item].price // пересчитываю сумму
-
-            if (this.items[item].amount <= 0) { // если товара больше нет
-                delete this.items[item] // удаляю товар из списка
-            }
+        if (!this.items[name]) {
+            this.items[name] = {
+                price,
+                amount: count,
+                total: price * count
+            };
         } else {
-            alert('Изменения заблокированы!') // если заказ заблокирован — показываю сообщение
+            const item = this.items[name];
+            item.amount += count;
+            item.total = item.price * item.amount;
         }
-    }
+    };
 
-    // создаю метод getCheck, который возвращает чек
+    this.removeItem = function (name, count = 1) {
+        if (this.isLocked) {
+            alert('Изменения заблокированы!');
+            return;
+        }
+
+        const item = this.items[name];
+        if (!item || count > item.amount) return;
+
+        item.amount -= count;
+        item.total = item.amount * item.price;
+
+        if (item.amount <= 0) {
+            delete this.items[name];
+        }
+    };
+
     this.getCheck = function () {
-        let result = 'Чек: \n'; // создаю строку для чека
-        let total = 0; // создаю переменную для общей суммы
+        let result = 'Чек:\n';
+        let total = 0;
 
-        for (key in this.items) { // перебираю каждый товар
-            // добавляю строку с товаром: название, кол-во, цена, сумма
-            result += `${key}: ${this.items[key].amount} шт. * ${this.items[key].price}₽ = ${this.items[key].total}₽ \n`
-            total += this.items[key].total // прибавляю к общей сумме
+        for (const name in this.items) {
+            const { amount, price, total: sum } = this.items[name];
+            result += `${name}: ${amount} шт. * ${price}₽ = ${sum}₽\n`;
+            total += sum;
         }
-        result += `Итого: ${total}` // добавляю строку с итогом
-        return result; // возвращаю чек
-    }
 
-    this.lockOrder = function () { this.isLocked = true } // создаю метод, который блокирует заказ
-    this.unlockOrder = function () { this.isLocked = false } // создаю метод, который разблокирует заказ
+        result += `Итого: ${total}₽`;
+        return result;
+    };
+
+    this.lockOrder = () => { this.isLocked = true; };
+    this.unlockOrder = () => { this.isLocked = false; };
 }
 
 
-// создаю новый заказ
-let order = new Elements()
+// как работает
+const order = new Elements();
 
-order.lockOrder() // блокирую заказ
-order.unlockOrder() // разблокирую заказ
+order.lockOrder();
+order.unlockOrder();
 
-order.addItem('пиво', 100, 4) // добавляю 4 пива по 100
-order.addItem('пиво', 100, 3) // добавляю ещё 3 пива по 100
-order.addItem('вино', 200, 3) // добавляю 3 вина по 200
-order.addItem('коньяк', 1200, 2) // добавляю 2 коньяка по 1200
+order.addItem('пиво', 100, 4);
+order.addItem('пиво', 100, 3);
+order.addItem('вино', 200, 3);
+order.addItem('коньяк', 1200, 2);
 
-order.removeItem('джин', 2) // пытаюсь удалить джин (его нет — ничего не происходит)
-order.removeItem('пиво', 2) // удаляю 2 пива
-order.removeItem('вино', 4) // пытаюсь удалить 4 вина (их всего 3 — ничего не происходит)
-order.removeItem('вино', 3) // удалит всё вино
+order.removeItem('джин', 2);
+order.removeItem('пиво', 2);
+order.removeItem('вино', 4);
+order.removeItem('вино', 3);
 
-console.log(order.getCheck()); // вывожу чек
-
-console.log(order.items) // вывожу текущий список товаров
-
-
+console.log(order.getCheck());
+console.log(order.items);
