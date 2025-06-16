@@ -97,4 +97,3 @@ console.log(order.getCheck()); // вывожу чек
 console.log(order.items) // вывожу текущий список товаров
 
 
-
